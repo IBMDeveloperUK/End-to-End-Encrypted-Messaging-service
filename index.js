@@ -1,6 +1,11 @@
+require('dotenv').config({silent : process.env.NODE_ENV === "production"});
+const mqtt = require('mqtt');
 const crypto = require("crypto");
 const fs = require("fs");
 const privateKeyPassphrase = process.env.PRIVATE_KEY_PASSPHRASE || "test";
+
+const userName = process.env.USERNAME;
+const msgTopic = process.env.MESSAGE_TOPIC;
 
 let publicKey;
 let privateKey;
@@ -42,23 +47,33 @@ if(!fs.existsSync(`${__dirname}/public.pem`) || !fs.existsSync(`${__dirname}/pri
 function encrypt(data, key){
 
 	const buffer = Buffer.from(data);
-    const encrypted = crypto.publicEncrypt(key, buffer);
-    return encrypted.toString("base64");
+	const encrypted = crypto.publicEncrypt(key, buffer);
+	return encrypted.toString("base64");
 
 }
 
 function decrypt(data, key){
 
 	var buffer = Buffer.from(data, "base64");
-    const decrypted = crypto.privateDecrypt({ key: key, passphrase: privateKeyPassphrase, }, buffer);
-    return decrypted.toString("utf8");
+	const decrypted = crypto.privateDecrypt({ key: key, passphrase: privateKeyPassphrase, }, buffer);
+	return decrypted.toString("utf8");
 
 }
 
-const string = "Hello, world.";
-console.log('Original String:', string);
+const MQTTClient = mqtt.connect('mqtt://mqtt.eclipse.org');
 
-const encrypted = encrypt(string, publicKey);
-console.log('Encrypted Message:', encrypted);
-const decrypted = decrypt(encrypted, privateKey);
-console.log('Decrypted Message:', decrypted);
+MQTTClient.on('connect', function () {
+	
+	MQTTClient.subscribe(`${msgTopic}:${userName}`, function (err) {
+		if (!err) {
+			setInterval(function(){
+				MQTTClient.publish(`${msgTopic}:${userName}`, encrypt( Date.now().toString(), publicKey ) );
+			}, 1500);
+		}
+	})
+
+});
+   
+MQTTClient.on('message', function (topic, message) {
+	console.log(topic, decrypt( message.toString(), privateKey ), `\nOriginal: ${message.toString()}\n\n` );
+});
