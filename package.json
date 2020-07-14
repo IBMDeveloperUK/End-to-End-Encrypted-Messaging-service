@@ -1,0 +1,23 @@
+{
+  "name": "end-to-end-encrypted-messaging-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seanmtracey/end-to-end-encrypted-messaging-service.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/seanmtracey/end-to-end-encrypted-messaging-service/issues"
+  },
+  "homepage": "https://github.com/seanmtracey/end-to-end-encrypted-messaging-service#readme",
+  "dependencies": {
+    "mqtt": "^4.1.0"
+  }
+}

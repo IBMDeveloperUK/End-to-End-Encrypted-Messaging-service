@@ -1,0 +1,4 @@
+VENV/*
+*.pem
+node_modules/
+*.py
