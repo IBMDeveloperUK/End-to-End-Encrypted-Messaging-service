@@ -134,7 +134,8 @@ MQTTClient.on('message', function (topic, message) {
 			const from = topic.split('/')[3];
 			RECEIVED_MESSAGES.push({
 				from : from,
-				msg : decrypt( message.toString(), privateKey )
+				msg : decrypt( message.toString(), privateKey ),
+				received : Number(Date.now())
 			});
 
 			console.log(RECEIVED_MESSAGES);
@@ -156,8 +157,7 @@ app.post('/send', [ bodyParser.json() ], (req, res) => {
 	console.log(PUBLIC_USER_KEYS.length);
 
 	PUBLIC_USER_KEYS.forEach(user => {
-		console.log('Who to?', `${MSGTOPIC}/message/${user.name}/${USERNAME}`);
-		MQTTClient.publish(`${MSGTOPIC}/message/${user.name}/${USERNAME}`, encrypt( Date.now().toString(), user.key ) );
+		MQTTClient.publish(`${MSGTOPIC}/message/${user.name}/${USERNAME}`, encrypt( req.body.msg, user.key ) );
 	});
 
 	res.end();
