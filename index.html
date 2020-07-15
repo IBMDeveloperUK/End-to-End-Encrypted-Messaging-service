@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>E2E Messaging</title>
+</head>
+
+<body>
+
+    <h1>End-To-End Encrypted Messaging</h1>
+
+    <section id="message-thread">
+        
+        <ol>
+            <li>Name: Hello there!</li>
+        </ol>
+
+    </section>
+
+    <form id="send-message" action="/send" method="POST">
+        
+        <input type="text" placeholder="Type your message here..." />
+        <input type="submit" value="Send"/>
+
+    </form>
+    
+    <script>
+
+        (function(){
+            
+            'use strict';
+
+            var messagesHolder = document.body.querySelector('#message-thread');
+            var transcript = messagesHolder.querySelector('ul');
+            var sendForm = document.querySelector('#send-message');
+
+            sendForm.addEventListener('submit', function(e){
+                
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                console.log();
+
+                var msg = this[0].value;
+
+                fetch(this.action, {
+                        method : this.method,
+                        headers : {
+                            'Content-Type' : 'application/json'
+                        },
+                        body : JSON.stringify({
+                            msg : msg
+                        })
+                    })
+                    .then(function(res){
+                        if(!res.ok){
+                            throw res;
+                        }
+                    })
+                    .catch(function(err){
+                        console.log(err);
+                    })
+                ;
+
+            }, false);
+
+        }());
+
+    </script>
+
+</body>
+
+</html>
