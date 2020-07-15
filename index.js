@@ -122,6 +122,7 @@ MQTTClient.on('message', function (topic, message) {
 			});
 
 			console.log(PUBLIC_USER_KEYS);
+			MQTTClient.publish(`${MSGTOPIC}/announce/${USERNAME}`, publicKey );
 				
 		}
 
