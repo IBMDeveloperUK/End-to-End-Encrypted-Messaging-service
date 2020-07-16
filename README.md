@@ -19,6 +19,8 @@ To this end, we'll be creating a Node.js application which will use
 - [Public-key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography) to encrypt messages sent to others, and decrypt messages sent to us.
 - [Express.js](https://en.wikipedia.org/wiki/Express.js) to deliver an application in a web browser that can send/receive messages
 
+We won't be covering the minutiae of public-key cryptography, but by the end of this workshop we'll have an application that can send messages that should be secure up until [at least 2030](https://www.jscape.com/blog/should-i-start-using-4096-bit-rsa-keys).
+
 ## Getting started
 
 First things first, to follow this workshop and make deploying our application to the cloud a little easier, fork this repo by clicking the 'Fork' button at the top of this repo to create your own copy that you'll be able to work from.
@@ -104,3 +106,90 @@ let publicKey;
 let privateKey;
 ```
 
+## Encryption keys
+### Checking if we have existing keys
+
+When our application spins up, the first thing we want it to do is check if there is already a public and private encryption key that we can use, and if so, load it up into our application. If there's no key-pair we will then generate and store those keys for use in the future.
+
+On the line after `let privateKey` add the following chunk of code.
+
+```javascript
+if(!fs.existsSync(`${__dirname}/public.pem`) || !fs.existsSync(`${__dirname}/private.pem`)){
+	console.log('Valid key pair not found. Generating new pair...');
+
+    // Code Block 1
+    
+
+} else {
+    
+    // Code Block 2
+
+    
+}
+
+```
+
+Here, we're checking to see if there is both a `private.pem` and `public.pem` in our applications working directory. If either one is not found, we'll generate a new pair and save them to disk.
+
+Now, I know what some of you looking at ```!fs.existsSync(`${__dirname}/public.pem`)``` might be saying:
+
+_"You shouldn't be using synchronous operations in your application, that slows things down!"_
+
+And you're right, that's completely true 99% of the time - but this is one of the 1% instances where I think it's totally fine:
+
+1. Our application is starting up at this point, there's nothing it needs to be doing right now other than checking it has everything it needs to get going
+2. Everything after this point in the application depends upon these operations being completed - managing the asynchronously is messy and unnecessary complex at this point in the application
+3. Yes, it is slower - but we're talking **milliseconds** here, I think we can sacrifice a little bit of startup time for the savings we get in not spending 5 minutes writing pleasing, but ultimately uneeded promise chains or callbacks.
+
+### Generating our key pair
+
+Just below the line that reads `// Code Block 1`, copy and paste the following code:
+
+```javascript
+const keys = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 4096,
+    namedCurve: 'secp256k1',
+    publicKeyEncoding: {
+        type: 'spki',
+        format: 'pem'
+    },
+    privateKeyEncoding: {
+        type: 'pkcs8',
+        format: 'pem',
+        cipher: 'aes-256-cbc',
+        passphrase: privateKeyPassphrase
+    }
+});
+
+publicKey = keys.publicKey;
+privateKey = keys.privateKey;
+
+console.log('Key pair successfully generated. Writing to disk.');
+
+fs.writeFileSync(`${__dirname}/public.pem`, publicKey, 'utf8');
+fs.writeFileSync(`${__dirname}/private.pem`, privateKey, 'utf8');
+
+console.log('Files successfully written.');
+```
+
+The first little bit of code generates a public-key pair using the [RSA cryptosystem](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) with a [key size](https://en.wikipedia.org/wiki/Key_size) of 4096 (the largest  key that can be generated with RSA) passed through in `modulusLength`.
+
+Long story short, bigger `modulusLength`, more secure keys we have - at least, that's the theory 😅
+
+For our public key we're using SPKI (pronounced _spooky_) to encode our key. For our private key we're using PKSC-8 and a 256 bit AES cipher. The main difference between these two encodings is that our PKCS-8 key can be encrypted with a passphrase.
+
+Both keys are returned as PEM format (a base-64 encoded) certificates and assigned to the `publicKey` and `privateKey` properties of the `keys` object.
+
+Once our keys have been generated, we assing them to our global `publicKey` and `privateKey` variables for use in the rest of our application.
+
+Finally, we write our certificates to disk so that the next time we run our applications we can just use those instead of generating a new pair.
+
+### Loading our keys from disk
+
+To that end, if we already have keys we can load them and assign them to the `publicKey` and `privateKey` variables. Copy the following code and paste it just after the line that reads `// Code Block 2`:
+
+```javascript
+console.log('Existing keys found. Using those.');
+publicKey = fs.readFileSync(`${__dirname}/public.pem`, 'utf8');
+privateKey = fs.readFileSync(`${__dirname}/private.pem`, 'utf8');
+```
