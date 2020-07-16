@@ -2,6 +2,74 @@
 <html lang="en">
 <head>
     <title>E2E Messaging</title>
+    <style>
+
+        html{
+            margin: 0;
+            padding: 0;
+        }
+
+        body{
+            font-family: sans-serif;
+            background: rgb(245,245,245);
+            color: black;
+            font-size: 16px;
+            padding: 0;
+            margin: 0;
+        }
+
+        body h1{
+            font-size: 1em;
+            color: white;
+            background: #0f62fe;
+            margin: 0;
+            padding: 0.75em;
+        }
+
+        #message-thread{
+            padding: 1em;
+        }
+
+        #message-thread ol{
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid black;
+            padding: 1em;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #message-thread ol li{
+            list-style-type: none;
+            max-width: 55%;
+            margin-bottom: 0.5em;
+            background: #6b56de;
+            padding: 0.5em;
+            color: white;
+            border-radius: 3px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+        }
+
+        #message-thread ol li.sent{
+            align-self: flex-end;
+            background: #4dc54d;
+        }
+
+        #send-message{
+            display: flex;
+        }
+
+        #send-message input[type="text"]{
+            font-size: 1em;
+            padding: 0.3em;
+            width: 284px;
+            margin-right: 5px;
+        }
+
+    </style>
 </head>
 
 <body>
@@ -14,14 +82,14 @@
             <li>Name: Hello there!</li>
         </ol>
 
+        <form id="send-message" action="/send" method="POST">
+            
+            <input type="text" placeholder="Type your message here..." />
+            <input type="submit" value="Send"/>
+    
+        </form>
+
     </section>
-
-    <form id="send-message" action="/send" method="POST">
-        
-        <input type="text" placeholder="Type your message here..." />
-        <input type="submit" value="Send"/>
-
-    </form>
     
     <script>
 

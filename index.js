@@ -139,7 +139,7 @@ MQTTClient.on('message', function (topic, message) {
 				received : Number(Date.now())
 			});
 
-			console.log(RECEIVED_MESSAGES);
+			console.log('Received messages:', RECEIVED_MESSAGES);
 
 		}
 
@@ -154,8 +154,8 @@ app.get('/', (req, res, next) => {
 
 app.post('/send', [ bodyParser.json() ], (req, res) => {
 
-	console.log(req.body);
-	console.log(PUBLIC_USER_KEYS.length);
+	console.log('Body:', req.body);
+	console.log('Known Users:', PUBLIC_USER_KEYS.length);
 
 	Object.keys(PUBLIC_USER_KEYS).forEach(key => {
 		const user = PUBLIC_USER_KEYS[key];
