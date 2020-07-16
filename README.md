@@ -205,7 +205,7 @@ For our public key we're using SPKI (pronounced _spooky_) to encode our key. For
 
 Both keys are returned as PEM format (a base-64 encoded) certificates and assigned to the `publicKey` and `privateKey` properties of the `keys` object.
 
-Once our keys have been generated, we assing them to our global `publicKey` and `privateKey` variables for use in the rest of our application.
+Once our keys have been generated, we're passing them to our global `publicKey` and `privateKey` variables for use in the rest of our application.
 
 Finally, we write our certificates to disk so that the next time we run our applications we can just use those instead of generating a new pair.
 
