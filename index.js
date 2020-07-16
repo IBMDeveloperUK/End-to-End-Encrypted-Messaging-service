@@ -25,7 +25,7 @@ const app = express();
 const server = http.createServer(app);
 
 const RECEIVED_MESSAGES = [];
-const PUBLIC_USER_KEYS = [];
+const PUBLIC_USER_KEYS = {};
 
 // Check if we have keys. If not, create them, if so, load them.
 let publicKey;
@@ -114,12 +114,12 @@ MQTTClient.on('message', function (topic, message) {
 
 		const user = topicParts[2];
 
-		if(user !== USERNAME){
+		if(user !== USERNAME && !PUBLIC_USER_KEYS[user]){
 
-			PUBLIC_USER_KEYS.push({
+			PUBLIC_USER_KEYS[user] = {
 				key : message.toString(),
 				name : user
-			});
+			};
 
 			console.log(PUBLIC_USER_KEYS);
 			MQTTClient.publish(`${MSGTOPIC}/announce/${USERNAME}`, publicKey );
@@ -157,7 +157,8 @@ app.post('/send', [ bodyParser.json() ], (req, res) => {
 	console.log(req.body);
 	console.log(PUBLIC_USER_KEYS.length);
 
-	PUBLIC_USER_KEYS.forEach(user => {
+	Object.keys(PUBLIC_USER_KEYS).forEach(key => {
+		const user = PUBLIC_USER_KEYS[key];
 		MQTTClient.publish(`${MSGTOPIC}/message/${user.name}/${USERNAME}`, encrypt( req.body.msg, user.key ) );
 	});
 
