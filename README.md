@@ -106,6 +106,27 @@ let publicKey;
 let privateKey;
 ```
 
+## Setting Local Enviroment Variables
+
+As noted above, our application is configured with environment variables. On our local system these are stored in that lovely little `.env` file we created a little earlier.
+
+Open up `.env` in your favourite IDE and copy and paste the following, editing where instructed:
+
+```
+USER_NAME=<REPLACE WITH THE NAME YOU WISH TO SHOW WHEN COMMUNICATING WITH OTHERS>
+MESSAGE_TOPIC=ibm_developer_uk
+MQTT_BROKER_ADDR=mqtt://mqtt.eclipse.org
+PRIVATE_KEY_PASSPHRASE=<REPLACW WITH A REASONABLY SECURE PASSPHRASE FOR ENCRYPTING YOUR PRIVATE KEY>
+```
+
+The `USER_NAME` and `PRIVATE_KEY_PASSPHRASE` are self explanatory. 
+
+`MESSAGE_TOPIC` is the [MQTT topic](https://en.wikipedia.org/wiki/MQTT#Overview) that we'll use to make sure everyone can find messages being sent to/from them.
+
+`MQTT_BROKER_ADDR` is the URL that we can access the MQTT-powered message broker that will relay messages to and from each user. We'll be using the publily accessible Eclipse Foundation MQTT broker for this workshop
+
+Once you've added that data to the `.env` file save and close it.
+
 ## Encryption keys
 ### Checking if we have existing keys
 
@@ -195,3 +216,56 @@ console.log('Existing keys found. Using those.');
 publicKey = fs.readFileSync(`${__dirname}/public.pem`, 'utf8');
 privateKey = fs.readFileSync(`${__dirname}/private.pem`, 'utf8');
 ```
+
+## Encrypting + Decrypting Messages
+
+### Encrypting Messages
+Now that we have a public-key pair we're able to encrypt and then decrypt our own messages. Because we're going to be doing that a lot in our application, we're going to write some helpful functions that will do the job for us `encrypt` and `decrypt`.
+
+First, let's put together the code for the `encrypt` function.
+
+On the line immediately after `// Code Block 3` copy and paste the following:
+
+```javascript
+function encrypt(data, key){
+
+	const buffer = Buffer.from(data);
+	const encrypted = crypto.publicEncrypt(key, buffer);
+	return encrypted.toString("base64");
+
+}
+
+// Code Block 4
+```
+
+As its name may suggest, this is our "encrypt" function. It takes two arguments `data` and `key`. The data argument is the thing that we want to encrypt, the key argument is the key that we want to use to encrypt that data. When we use this function, we'll be passing our messages that we want to send to other people as the `data` parameter, and the recipient's public key as the `key` parameter.
+
+We first convert our string to a buffer. Any of data can be encrypted with public-key encryption, so it makes little sense for the `crypto.publicEncrypt` function to expect a string as an argument.
+
+Once `crypto.publicEncrypt` has done it's job, it returns a buffer of encrypted data. We'll want to send this to other people through an MQTT broker in a little bit, so we'll convert it to a BASE64 string to save us having to deal with any headaches that may arise from the data being in binary form while it's being transmitted.
+
+### Decrypting Messages
+
+Now that we've put together a way to encrypt messages, we'll need to be able to decrypt some too.
+
+Copy and paste the following block of code after the line that reads `// Code Block 4`.
+
+```javascript
+function decrypt(data, key){
+
+	var buffer = Buffer.from(data, "base64");
+	const decrypted = crypto.privateDecrypt({ key: key, passphrase: privateKeyPassphrase }, buffer);
+	return decrypted.toString("utf8");
+
+}
+
+// Code Block 5
+```
+
+As you may expect, our `decrypt` function is like our `encrypt` but in reverse. Like the `encrypt` function our `decrypt` function has a `data` and `key` paramater - except this time our data is the base64 encoded string we wish to decode, and the key is our private key.
+
+**_It's important to note that our private key can only be used to decrypt messages that have been encrypted with its matching public key._**
+
+This time, we reconvert our base64 encoded string back to a buffer and then pass this through to `crypto.privateDecrypt` with our private key *and* the passphrase we will have set to encrypt our private key (we wouldn't want just anybody to be able to read it now, would we?).
+
+`crypto.privateDecrypt` will take our buffer of data, decrypt it and then return a new buffer with the decrypted information. We then convert this back to a user readable string and return it as the result of the function with `return decrypted.toString('utf8');`.
