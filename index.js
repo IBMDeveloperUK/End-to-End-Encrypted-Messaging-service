@@ -27,6 +27,5 @@ const server = http.createServer(app);
 const RECEIVED_MESSAGES = [];
 const PUBLIC_USER_KEYS = {};
 
-// Check if we have keys. If not, create them, if so, load them.
 let publicKey;
 let privateKey;
