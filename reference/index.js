@@ -88,7 +88,6 @@ MQTTClient.on('connect', function () {
 	MQTTClient.subscribe(`${MSGTOPIC}/message/${USERNAME}/#`, function (err) {
 		if (err) {
 			console.log('Failed to subscribe to:', `${MSGTOPIC}/${USERNAME}`);
-			// MQTTClient.publish(`${MSGTOPIC}/${USERNAME}`, encrypt( Date.now().toString(), publicKey ) );
 		}
 	});
 
@@ -103,7 +102,6 @@ MQTTClient.on('connect', function () {
 });
 
 MQTTClient.on('message', function (topic, message) {
-	// console.log(topic, decrypt( message.toString(), privateKey ), `\nOriginal: ${message.toString()}\n\n` );
 
 	const topicParts = topic.split('/');
 	const type = topicParts[1];
@@ -121,7 +119,6 @@ MQTTClient.on('message', function (topic, message) {
 				name : user
 			};
 
-			console.log(PUBLIC_USER_KEYS);
 			MQTTClient.publish(`${MSGTOPIC}/announce/${USERNAME}`, publicKey );
 				
 		}

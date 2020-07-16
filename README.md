@@ -44,6 +44,8 @@ cd end-to-end-encrypted-messaging-service
 
 I like `touch .env`.
 
+Finally, now's a good time to install our application dependecies. Run `npm install` to get all of our dependencies ready when we want to run our app.
+
 Next, open up `index.js` in your favourite IDE, this is where we'll be writing most of the code for this workshop.
 
 ## Generating Key pair
@@ -269,3 +271,26 @@ As you may expect, our `decrypt` function is like our `encrypt` but in reverse. 
 This time, we reconvert our base64 encoded string back to a buffer and then pass this through to `crypto.privateDecrypt` with our private key *and* the passphrase we will have set to encrypt our private key (we wouldn't want just anybody to be able to read it now, would we?).
 
 `crypto.privateDecrypt` will take our buffer of data, decrypt it and then return a new buffer with the decrypted information. We then convert this back to a user readable string and return it as the result of the function with `return decrypted.toString('utf8');`.
+
+If you want to test this out, you can copy and paste the following after `// Code Block 5` and then run the code with `node index.js`
+
+```javascript
+const originalString = "Hello, world.";
+console.log('Original:', originalString);
+
+const encryptedString = encrypt(originalString, publicKey);
+console.log('Encrypted:', encryptedString);
+
+const decryptedString = decrypt(encryptedString, privateKey);
+console.log('Decrypted:', decryptedString);
+```
+
+And you should see something like this:
+
+```
+Original: Hello, world.
+Encrypted: lBoO0thivi/kl8dBJ2UOaNQQn3KwuI..... //Truncated
+Decrypted: Hello, world.
+```
+
+Remember, the only reason we can decrypt this message with our private key is _because we encrypted it with our public key_. If we were using _someone else's public key_ to encrypt the message, **we wouldn't be able to decrypt it with our private key**.
