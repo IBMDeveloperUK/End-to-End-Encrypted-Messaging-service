@@ -289,8 +289,54 @@ And you should see something like this:
 
 ```
 Original: Hello, world.
-Encrypted: lBoO0thivi/kl8dBJ2UOaNQQn3KwuI..... //Truncated
+Encrypted: lBoO0thivi/kl8dBJ2UOaNQQn3KwuI..... // Truncated
 Decrypted: Hello, world.
 ```
 
 Remember, the only reason we can decrypt this message with our private key is _because we encrypted it with our public key_. If we were using _someone else's public key_ to encrypt the message, **we wouldn't be able to decrypt it with our private key**.
+
+## Connecting to the Message Broker
+
+Now that we've gotten all of our encryption/decryption logic set up, it's time to start putting together the code that will enable users to communicate with each other by an MQTT-powered messaging broker.
+
+At the start of our `index.js` file, we have the line `const MQTTClient = mqtt.connect(MQTT_BROKER_ADDR);` which will connect our application to the MQTT broker. Once the connection has been established, we'll want to do something with that connection.
+
+We're going to do two things
+
+1. Subscribe to a some topics on the broker
+2. Publish a message to the broker on a topic.
+
+Copy and 
+
+```javascript
+MQTTClient.on('connect', function () {
+
+    // Subscription 1
+	MQTTClient.subscribe(`${MSGTOPIC}/message/${USERNAME}/#`, function (err) {
+		if (err) {
+			console.log('Failed to subscribe to:', `${MSGTOPIC}/${USERNAME}`);
+		}
+	});
+
+    // Subscription 2
+    MQTTClient.subscribe(`${MSGTOPIC}/announce/#`, function (err) {
+        if (err) {
+            console.log('Failed to subscribe to:', `${MSGTOPIC}/${USERNAME}`);
+		}
+	});
+
+    // C'est Moi.
+	MQTTClient.publish(`${MSGTOPIC}/announce/${USERNAME}`, publicKey );
+
+});
+```
+
+When we subscribe to a topic on an MQTT broker, we're essentially saying "I would like to know about any message sent on this topic". 
+
+The `${MSGTOPIC}` variable is one that we set in the environment variables at the start. With it, we're essentially creating a namespace that we can call our own to listen for messages on - exactly analogous to a chat room, but with MQTT topics rather than having to manually manage connections + users.
+
+For `Subscription 1` we're asking to have any message sent for **us specifically** to be sent on to us. The `#` is the MQTT wildcard - in our application it will be populated by the name of the person publishing the message to us on that topic.
+
+For `Subscription 2` we're asking to have any message sent to the `/announce/` topic forwarded to us. When we spin up our application we'll publish our public key on the `/announce/<YOUR USERNAME>` topic. This will allow anybody already connected to the broker to encrypt messages to send to the person that just arrived.
+
+Finally, with `MQTTClient.publish` we transmit our public key on the topic `/announce/<YOUR_USERNAME>` topic. This way, people will be able to encrypt messages with our public that only we'll be able to read.
