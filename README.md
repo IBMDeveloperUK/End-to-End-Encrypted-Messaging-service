@@ -594,3 +594,36 @@ The application we've built is going to be deployed as a Cloud Foundry applicati
 #### Deploying our application
 
 It's time! Let's ship it 🚢
+
+Doing so is really easy - simply type in
+
+`ibmcloud cf push`
+
+And watch as our application is deployed before our eyes! This should take 2-3 minutes.
+
+Once that's done, you should see something like this
+
+![An image of a successfully deployed CF app](images/2.png)
+
+Take note of the `route` property, that's where our application is going to be accessible. Your's won't be the same as the one in the image, but if you head to the URL, you should see an app not unlike this
+
+![An image of our web app front end](images/3.png)
+
+It's not much, but it's honest work - but we're not _quite_ ready to send messages yet.
+
+#### Setting environment variables - one. last. time 👍
+
+Remember those environment variables we had stored in our `.env` file a little while ago? Well, they aren't included in our repo because that's where our secrets are kept 😅
+
+This is the prime time now, and we don't want all of our secrets out on the open web, so we're going to add our environment variables to our production environment with the following commands.
+
+`ibmcloud cf set-env e2e-workshop USER_NAME <YOUR_DESIRED_USERNAME>`
+`ibmcloud cf set-env e2e-workshop MESSAGE_TOPIC ibm_developer_uk`
+`ibmcloud cf set-env e2e-workshop MQTT_BROKER_ADDR mqtt://mqtt.eclipse.org`
+`ibmcloud cf set-env e2e-workshop PRIVATE_KEY_PASSPHRASE <YOUR PRIVATE KEY PASSPHRASE>`
+
+Once that's done (just as the CLI tool suggests) run `ibmcloud cf restage e2e-workshop` to make sure all of our newly assigned environment variables take effect.
+
+This will rebuild our app, but then we're ready to go!
+
+Congrats, you should now be able to use the web app to talk to other people who've completed this workshop 🎉
