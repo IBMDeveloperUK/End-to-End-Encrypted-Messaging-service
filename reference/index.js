@@ -45,7 +45,7 @@ if(!fs.existsSync(`${__dirname}/public.pem`) || !fs.existsSync(`${__dirname}/pri
 			type: 'pkcs8',
 			format: 'pem',
 			cipher: 'aes-256-cbc',
-			passphrase: passphrase
+			passphrase: privateKeyPassphrase
 		}
 	});
 
