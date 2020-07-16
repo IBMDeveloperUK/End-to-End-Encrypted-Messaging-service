@@ -544,7 +544,7 @@ In your teminal run the following commands one after the other
 That will send our application up to GitHub for distrubtion somewhere else on the internet - And that's cool - but do you know what's really cool? ~~A Billion Dollars~~ deploying our application to the cloud!
 
 ## Deploying to IBM Cloud
-
+### Accessing the IBM Cloud Shell
 Deploying our application to IBM Cloud is super-simple and should take less than 5 minutes to fire up.
 
 We're going to use the IBM Cloud Shell which will give us a free virtual environment to run an interactive shell from which we can deploy our application.
@@ -555,8 +555,42 @@ Go to https://cloud.ibm.com/shell and you should see this:
 
 The IBM Cloud shell is pretty neat - it has all of the tools we'll need to deploy our app to IBM Cloud, so we can get things stood up even quicker than we normally would!
 
+### Cloning our code
 The first thing we're going to do it clone our GitHub repo to this system so we can deploy it as an application.
 
-Just like we did when we first cloned our newly forked repo to our local system, run the following command to clone it to your Shell environment
+Just like we did when we first cloned our newly forked repo to our local system, run the following command to clone it to your Shell environment.
 
-`git clone git@github.com:<YOUR_GH_USERNAME>/end-to-end-encrypted-messaging-service.git`
+`git clone https://github.com/<YOUR_GITHUB_USERNAME>/end-to-end-encrypted-messaging-service.git`
+
+Note that this command retrieves the code over HTTPS, and that we will need to replace `<YOUR_GITHUB_USERNAME>` with your GitHub username.
+
+### Configuring the IBM Cloud CLI tool
+
+Once your code has been downloaded to the shell environment, we want to enter that directory to execute commands. Do that with:
+
+`cd end-to-end-encrypted-messaging-service/`
+
+Next, you'll need to login to the IBM Cloud with the CLI tool. Run the following commands and follow the on-screen instructions.
+
+`ibmcloud login`
+
+Once that's done, we're logged in and able to execute commands to deploy our application to the IBM Cloud, but first we need to do a little configuration to make sure it goes to the right place.
+
+### Configuring the IBM Cloud CLI
+
+#### Targeting the correct region
+This first thing we need to do is target the correct region. As our shell environment is based in Frankfurt, the CLI tool defaults to the `eu-de` region, but we'll want to target the `eu-gb` region instead.
+
+Run the following command to target the `eu-gb` region
+
+`ibmcloud target -r eu-gb`
+
+#### Target the right Cloud Foundry Space
+
+The application we've built is going to be deployed as a Cloud Foundry application (the PaaS platform for running apps on the IBM Cloud). To do this, we need to target an org and a space. Fortunately, when you IBM Cloud account is created you'll have some defaults, so run the following command to interactively target the correct org and space and select all of the defaults
+
+`ibmcloud target --cf`
+
+#### Deploying our application
+
+It's time! Let's ship it 🚢
