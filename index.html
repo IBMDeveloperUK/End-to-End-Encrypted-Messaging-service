@@ -46,11 +46,12 @@
             max-width: 55%;
             margin-bottom: 0.5em;
             background: #6b56de;
-            padding: 0.5em;
+            padding: 0.5em 0.75em;
             color: white;
             border-radius: 3px;
             text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
             border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+            align-self: flex-start;
         }
 
         #message-thread ol li.sent{
@@ -78,9 +79,7 @@
 
     <section id="message-thread">
         
-        <ol>
-            <li>Name: Hello there!</li>
-        </ol>
+        <ol></ol>
 
         <form id="send-message" action="/send" method="POST">
             
