@@ -314,14 +314,14 @@ MQTTClient.on('connect', function () {
     // Subscription 1
 	MQTTClient.subscribe(`${MSGTOPIC}/message/${USERNAME}/#`, function (err) {
 		if (err) {
-			console.log('Failed to subscribe to:', `${MSGTOPIC}/${USERNAME}`);
+			console.log('Failed to subscribe to:', `${MSGTOPIC}/message/${USERNAME}`);
 		}
 	});
 
     // Subscription 2
     MQTTClient.subscribe(`${MSGTOPIC}/announce/#`, function (err) {
         if (err) {
-            console.log('Failed to subscribe to:', `${MSGTOPIC}/${USERNAME}`);
+            console.log('Failed to subscribe to:', `${MSGTOPIC}/announce/#`);
 		}
 	});
 
@@ -340,3 +340,99 @@ For `Subscription 1` we're asking to have any message sent for **us specifically
 For `Subscription 2` we're asking to have any message sent to the `/announce/` topic forwarded to us. When we spin up our application we'll publish our public key on the `/announce/<YOUR USERNAME>` topic. This will allow anybody already connected to the broker to encrypt messages to send to the person that just arrived.
 
 Finally, with `MQTTClient.publish` we transmit our public key on the topic `/announce/<YOUR_USERNAME>` topic. This way, people will be able to encrypt messages with our public that only we'll be able to read.
+
+## Handling messages
+
+Now that we're subscribed to the two different topics, we want to be able to handle messages that arrive for those topics in our application.
+
+Remember, there are two topics that we're looking for messages on:
+
+1. `/announce` - Fired when someone new joins the broker with this application
+2. `/message` - triggered whenever a message is sent for us.
+
+Copy and paste the following code after 
+```javascript
+MQTTClient.on('message', function (topic, message) {
+
+	const topicParts = topic.split('/');
+	const type = topicParts[1];
+
+    console.log('Message type:', type);
+    
+    // Code Block 6
+
+});
+```
+
+Every time a message is received on one of the topics that we've subsribed to, this function will be triggered.
+
+Now, we'll want to know how best to handle each message based on what "type" it is (that's not an MQTT concept, it's just something that we're creating for this application).
+
+Each of the topics weve subscribed to starts with `<FAUX_NAMESPACE>/<TYPE>/<USER>`, so we can split the topic on the `/` character and deduce how best to handle the message payload based on that information.
+
+### Exchanging public keys
+
+Let's handle when the message arrives on the `"announce"` topic. Copy and paste the following code after `// Code Block 6`:
+
+```javascript
+if(type === 'announce'){
+
+    const user = topicParts[2];
+
+    if(user !== USERNAME && !PUBLIC_USER_KEYS[user]){
+
+        PUBLIC_USER_KEYS[user] = {
+            key : message.toString(),
+            name : user
+        };
+
+        MQTTClient.publish(`${MSGTOPIC}/announce/${USERNAME}`, publicKey );
+            
+    }
+
+} else if(type === 'message') {
+
+    // Code Block 7
+
+}
+
+```
+
+In this block of code, if we deem the message to be one that's announcing someone new is passing messages around, we first assign the variable `user` to be the value that's passed along in the (now split) topic.
+
+Next, we want to check that the announcement of a key isn't one that we sent ourselves. Remember, when we first connect to the broker we announce our own presence too - there's no point in processing a message that we ourselves sent.
+
+Second, we check whether or not we have a public key for this user already. If not, we'll add them to our `PUBLIC_USER_KEYS` object with their name (as derived from the topic) and their public key (recieved in the payload of the message) so that we can send encrypted messages to them.
+
+Finally, we then also announce ourselves. For everyone who's already aware of us this will have no effect, but for the new person connected to the broker, it'll give them a chance to receive our public key so that they can send messages to us.
+
+### Handling received messages
+
+Now that we have the code for handling users announcing their presence, we're ready to write a little bit of code to handle receiving messages intended for us.
+
+Copy and paste the following code after `// Code Block 7`:
+
+```javascript
+const to = topicParts[2];
+
+if(to === USERNAME){
+
+    const from = topic.split('/')[3];
+    RECEIVED_MESSAGES.push({
+        from : from,
+        msg : decrypt( message.toString(), privateKey ),
+        received : Number(Date.now())
+    });
+
+    console.log('Received messages:', RECEIVED_MESSAGES);
+
+}
+```
+
+The first thing we're doing here is creating a handy variable `to` for checking who the message was intended for.
+
+We subscribed to recieve every single message that matched our topic after `/message` so we're going to recieve other peoples messages too - but that doesn't matter - any message that has been sent by our application will only be decryptable by people with the right private key. So, while we're able to receive the encrypted messages meant for other people, we don't have the right private key to decrypt them, so all we'll get is gobbledygook.
+
+To save us wasting time trying to decrypt messages that aren't intended for us, we'll simply check if the `to` variable is equivalent to `USERNAME` - the username we set for ourselves in the environment variables at the start of this workshop.
+
+If the message is intended for us, then we'll split up the message topic again and get the username of the person who sent it to us. Then we'll store an object in the `RECEIVED_MESSAGES` (one of the variables that we started this application with) with the senders name, the decrypted message, and the time receive so that they can be retrieved by a viewer later.
