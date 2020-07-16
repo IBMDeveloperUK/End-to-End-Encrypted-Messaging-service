@@ -396,6 +396,8 @@ if(type === 'announce'){
 
 }
 
+// Code Block 8
+
 ```
 
 In this block of code, if we deem the message to be one that's announcing someone new is passing messages around, we first assign the variable `user` to be the value that's passed along in the (now split) topic.
@@ -436,3 +438,96 @@ We subscribed to recieve every single message that matched our topic after `/mes
 To save us wasting time trying to decrypt messages that aren't intended for us, we'll simply check if the `to` variable is equivalent to `USERNAME` - the username we set for ourselves in the environment variables at the start of this workshop.
 
 If the message is intended for us, then we'll split up the message topic again and get the username of the person who sent it to us. Then we'll store an object in the `RECEIVED_MESSAGES` (one of the variables that we started this application with) with the senders name, the decrypted message, and the time receive so that they can be retrieved by a viewer later.
+
+## Sending Messages
+
+With that, we have all of the code we need to receive public keys and messages from other users - Great! 🎉
+
+But now we need some way to send messages...
+
+Well, we could create a command-line interface, but that wouldn't be much fun - things are better when they're visual right?
+
+Yes. They are 👍
+
+In this last short section, we'll use the Express.js dependency that we included earlier to enable our application to recieve HTTP requests containing messages from a web app which will then be encrypted by our application and sent over MQTT to whomever we so desire.
+
+### Delivering our web app
+
+After the line that reads `// Code Block 8` copy and paste the following code:
+
+```javascript
+app.get('/', (req, res, next) => {
+	res.sendFile(`${__dirname}/index.html`);
+});
+
+// Code Block 9
+```
+
+This registers an HTTP route in our application server that will deliver the `index.html` page (it contains all of the logic we need to send and display messages we receive) to any web browser that requests it.
+
+### Handling messages to be sent
+
+Next up, we need a route that our HTTP app can `POST` data to for encryption and forwarding to the MQTT broker.
+
+Copy and paste the following block of code beneath the line that reads `// Code Block 9`:
+
+```javascript
+app.post('/send', [ bodyParser.json() ], (req, res) => {
+
+	Object.keys(PUBLIC_USER_KEYS).forEach(key => {
+		const user = PUBLIC_USER_KEYS[key];
+		MQTTClient.publish(`${MSGTOPIC}/message/${user.name}/${USERNAME}`, encrypt( req.body.msg, user.key ) );
+	});
+
+	res.end();
+});
+
+// Code Block 10
+```
+
+In this code, we're sending the messages that we want to send to everyone that we have recieved a public key for - so this is more like a chat room than a one-to-one messenger application, but there's nothing stop us from adjusting our code to achieve 1-2-1 communication between people.
+
+First, we get the users information from `PUBLIC_USER_KEYS` and create a `user` variable that we can use to neatly access that users' name and public key. We then pass that information to `MQTTClient.publish` telling it to publish the information on a topic specifically for that user. 
+
+Rather than sending the message unencrypted we pass that as an argument to `encrypt` with the message we wish to send, and that users public encryption key.
+
+Finally, we end the HTTP request with `res.end()` so the our web application know that the message has been successfully received.
+
+### Getting the messages for display
+
+Lastly, we need one final HTTP route that our web app can use to check for messages that have been recieved and decrypted by our application.
+
+After the line that reads `// Code Block 10` copy and paste the following bit of code:
+
+```javascript
+app.get('/check', (req, res, next) => {
+
+	res.json({
+		messages : RECEIVED_MESSAGES
+	});
+
+	RECEIVED_MESSAGES.length = 0;
+
+});
+```
+
+Every 500ms, our web application will hit the `/check` endpoint to see if there's any messages waiting for our user to read. Every time we send the messages back to the client we empty them out from our server. We don't need to hang on to them anymore.
+
+### Starting our HTTP server
+
+That's all of our Asymmetric Encryption/MQTT/HTTP logic done 🚀
+
+All that needs to be done now is right one final bit of code which tells our application to listen on a designated port for connections and requests. We can do that by adding the following right at the end of our `index.js` file.
+
+```javascript
+server.listen(process.env.PORT || 8080, () => {
+    console.log(`Server started on port ${server.address().port} :)`);
+});
+```
+
+And we're good to go!
+
+If you want to test this out locally, you can enter `npm run start` in the working directory of this project with your terminal and (fingers crossed) it should spin up and happily report that there's now a server started. Then you can head over to [localhost](http://localhost:8080) to see our lovely web app that will let us send and recieve encrypted messages.
+
+And that's cool - but do you know what's really cool? ~~A Billion Dollars~~ deploying our application to the cloud!
+

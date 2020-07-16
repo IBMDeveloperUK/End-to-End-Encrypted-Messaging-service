@@ -1,0 +1,8 @@
+---
+applications:
+- name: e2e-workshop
+  randomroute: true
+  memory: 256M
+  disk_quota: 512M
+  buildpack: nodejs_buildpack
+  command: npm run start
