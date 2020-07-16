@@ -15,7 +15,7 @@ const mqtt = require('mqtt');
 // Configuration Variables
 const privateKeyPassphrase = process.env.PRIVATE_KEY_PASSPHRASE || "test";
 const MQTT_BROKER_ADDR = process.env.MQTT_BROKER_ADDR;
-const USERNAME = process.env.USERNAME;
+const USERNAME = process.env.USER_NAME;
 const MSGTOPIC = process.env.MESSAGE_TOPIC;
 
 const MQTTClient = mqtt.connect(MQTT_BROKER_ADDR);
