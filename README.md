@@ -529,5 +529,34 @@ And we're good to go!
 
 If you want to test this out locally, you can enter `npm run start` in the working directory of this project with your terminal and (fingers crossed) it should spin up and happily report that there's now a server started. Then you can head over to [localhost](http://localhost:8080) to see our lovely web app that will let us send and recieve encrypted messages.
 
-And that's cool - but do you know what's really cool? ~~A Billion Dollars~~ deploying our application to the cloud!
+### Committing to GitHub
 
+So, now that we have all of our code, we want to send it somewhere right?
+
+At the very start, we forked this repo so we had our own copy of the code, and now that we've worked on it, it's ready to go back to GitHub.
+
+In your teminal run the following commands one after the other
+
+`git add .`
+`git commit -m 'First Verion'`
+`git push origin master`
+
+That will send our application up to GitHub for distrubtion somewhere else on the internet - And that's cool - but do you know what's really cool? ~~A Billion Dollars~~ deploying our application to the cloud!
+
+## Deploying to IBM Cloud
+
+Deploying our application to IBM Cloud is super-simple and should take less than 5 minutes to fire up.
+
+We're going to use the IBM Cloud Shell which will give us a free virtual environment to run an interactive shell from which we can deploy our application.
+
+Go to https://cloud.ibm.com/shell and you should see this:
+
+![An image of the IBM Cloud Shell](images/1.png)
+
+The IBM Cloud shell is pretty neat - it has all of the tools we'll need to deploy our app to IBM Cloud, so we can get things stood up even quicker than we normally would!
+
+The first thing we're going to do it clone our GitHub repo to this system so we can deploy it as an application.
+
+Just like we did when we first cloned our newly forked repo to our local system, run the following command to clone it to your Shell environment
+
+`git clone git@github.com:<YOUR_GH_USERNAME>/end-to-end-encrypted-messaging-service.git`
