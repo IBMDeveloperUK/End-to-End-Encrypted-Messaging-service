@@ -127,6 +127,8 @@ if(!fs.existsSync(`${__dirname}/public.pem`) || !fs.existsSync(`${__dirname}/pri
     
 }
 
+// Code Block 3
+
 ```
 
 Here, we're checking to see if there is both a `private.pem` and `public.pem` in our applications working directory. If either one is not found, we'll generate a new pair and save them to disk.
