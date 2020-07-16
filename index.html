@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>E2E Messaging</title>
+    <style>
+
+        html{
+            margin: 0;
+            padding: 0;
+        }
+
+        body{
+            font-family: sans-serif;
+            background: rgb(245,245,245);
+            color: black;
+            font-size: 16px;
+            padding: 0;
+            margin: 0;
+        }
+
+        body h1{
+            font-size: 1em;
+            color: white;
+            background: #0f62fe;
+            margin: 0;
+            padding: 0.75em;
+        }
+
+        #message-thread{
+            padding: 1em;
+        }
+
+        #message-thread ol{
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid black;
+            padding: 1em;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #message-thread ol li{
+            list-style-type: none;
+            max-width: 55%;
+            margin-bottom: 0.5em;
+            background: #6b56de;
+            padding: 0.5em 0.75em;
+            color: white;
+            border-radius: 3px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+            align-self: flex-start;
+        }
+
+        #message-thread ol li.sent{
+            align-self: flex-end;
+            background: #4dc54d;
+        }
+
+        #send-message{
+            display: flex;
+        }
+
+        #send-message input[type="text"]{
+            font-size: 1em;
+            padding: 0.3em;
+            width: 284px;
+            margin-right: 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <h1>End-To-End Encrypted Messaging</h1>
+
+    <section id="message-thread">
+        
+        <ol></ol>
+
+        <form id="send-message" action="/send" method="POST">
+            
+            <input type="text" placeholder="Type your message here..." />
+            <input type="submit" value="Send"/>
+    
+        </form>
+
+    </section>
+    
+    <script>
+
+        (function(){
+            
+            'use strict';
+
+            var messagesHolder = document.body.querySelector('#message-thread');
+            var transcript = messagesHolder.querySelector('ol');
+            var sendForm = document.querySelector('#send-message');
+
+            function getMessages(){
+
+                fetch('/check')
+                    .then(function(res){
+                        if(res.ok){
+                            return res.json();
+                        } else {
+                            throw res;
+                        }
+                    })
+                    .then(function(data){
+                        console.log(data);
+                        data.messages.forEach(function(message){
+
+                            var li = document.createElement('li');
+                            li.textContent = `${message.from}: ${message.msg}`;
+                            transcript.appendChild(li);
+
+                        });
+
+                    })
+                    .catch(function(err){
+                        console.log('Checking messages err:', err);
+                    })
+
+            }
+
+            sendForm.addEventListener('submit', function(e){
+                
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                var msg = this[0].value;
+
+                var li = document.createElement('li');
+                li.classList.add('sent');
+                li.textContent = msg;
+                transcript.appendChild(li);
+
+                this.reset();                
+
+                fetch(this.action, {
+                        method : this.method,
+                        headers : {
+                            'Content-Type' : 'application/json'
+                        },
+                        body : JSON.stringify({
+                            msg : msg
+                        })
+                    })
+                    .then(function(res){
+                        if(!res.ok){
+                            throw res;
+                        }
+                    })
+                    .catch(function(err){
+                        console.log(err);
+                    })
+                ;
+
+            }, false);
+
+            setInterval(getMessages, 500);
+
+        }());
+
+    </script>
+
+</body>
+
+</html>
